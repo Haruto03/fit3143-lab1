@@ -53,3 +53,18 @@ dkms.conf
 
 # debug information files
 *.dwo
+
+# --- FIT3143 Lab1 ---
+
+# Linux executables (no extension)
+task1
+task2
+task3
+
+# Generated output
+primes.txt
+primes_output.txt
+serial_*.txt
+
+# Benchmark results (remove this line if you want to share raw data)
+results.csv

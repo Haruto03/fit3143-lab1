@@ -1,0 +1,113 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <time.h>
+#include <stdbool.h>
+
+#define OUTPUT_FILE "primes_output.txt"
+#define STDOUT_THRESHOLD 100  /* n < 100 -> stdout, n >= 100 -> file */
+
+/* ----------------------------------------------------------------------
+ * is_prime: returns true if k is a prime number, false otherwise.
+ * Uses trial division up to sqrt(k), skipping even divisors.
+ * ---------------------------------------------------------------------- */
+bool is_prime(long long k) {
+    if (k < 2) return false;
+    if (k == 2) return true;
+    if (k % 2 == 0) return false;
+
+    long long limit = (long long) sqrt((double) k);
+    for (long long i = 3; i <= limit; i += 2) {
+        if (k % i == 0) return false;
+    }
+    return true;
+}
+
+/* ----------------------------------------------------------------------
+ * find_primes: scans [2, n) and stores every prime found into 'primes'.
+ * The array is filled in increasing order of k, so the result is already
+ * sorted in ascending order - no extra sorting step is required.
+ * Returns the number of primes found.
+ * ---------------------------------------------------------------------- */
+long long find_primes(long long n, long long *primes) {
+    long long count = 0;
+    for (long long k = 2; k < n; k++) {
+        if (is_prime(k)) {
+            primes[count++] = k;
+        }
+    }
+    return count;
+}
+
+/* ----------------------------------------------------------------------
+ * write_primes: outputs the sorted prime list either to stdout (small n)
+ * or to a text file (large n), one prime per line, plus a summary.
+ * ---------------------------------------------------------------------- */
+void write_primes(long long n, long long *primes, long long count, double elapsed) {
+    if (n < STDOUT_THRESHOLD) {
+        printf("\nPrime numbers less than %lld (%lld found):\n", n, count);
+        for (long long i = 0; i < count; i++) {
+            printf("%lld", primes[i]);
+            if (i != count - 1) printf(", ");
+        }
+        printf("\n");
+    } else {
+        FILE *fp = fopen(OUTPUT_FILE, "w");
+        if (fp == NULL) {
+            fprintf(stderr, "Error: could not open %s for writing.\n", OUTPUT_FILE);
+            return;
+        }
+        fprintf(fp, "Prime numbers less than %lld (%lld found):\n", n, count);
+        for (long long i = 0; i < count; i++) {
+            fprintf(fp, "%lld\n", primes[i]);
+        }
+        fclose(fp);
+        printf("\n%lld primes written to \"%s\"\n", count, OUTPUT_FILE);
+    }
+
+    printf("n = %lld | primes found = %lld | time taken = %.6f seconds\n",
+           n, count, elapsed);
+}
+
+int main(int argc, char *argv[]) {
+    long long n;
+
+    /* Accept n either as a command-line argument (for easy benchmark
+     * scripting across many n values, as required for Tasks 2 & 3) or
+     * interactively from the terminal. */
+    if (argc >= 2) {
+        n = atoll(argv[1]);
+    } else {
+        printf("Enter n (find primes strictly less than n): ");
+        if (scanf("%lld", &n) != 1) {
+            fprintf(stderr, "Error: invalid input.\n");
+            return EXIT_FAILURE;
+        }
+    }
+
+    if (n < 2) {
+        printf("There are no prime numbers less than %lld.\n", n);
+        return EXIT_SUCCESS;
+    }
+
+    /* Allocate space for the worst case (every number below n is prime). */
+    long long *primes = malloc(n * sizeof(long long));
+    if (primes == NULL) {
+        fprintf(stderr, "Error: memory allocation failed for n = %lld.\n", n);
+        return EXIT_FAILURE;
+    }
+
+    struct timespec start, end;
+    clock_gettime(CLOCK_MONOTONIC, &start);
+
+    long long count = find_primes(n, primes);
+
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    double elapsed = (end.tv_sec - start.tv_sec) +
+                      (end.tv_nsec - start.tv_nsec) / 1e9;
+
+    write_primes(n, primes, count, elapsed);
+
+    free(primes);
+    return EXIT_SUCCESS;
+}
