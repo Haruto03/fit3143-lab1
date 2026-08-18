@@ -66,3 +66,7 @@ primes.txt
 primes_output*.txt
 serial_*.txt
 
+
+# Experiment binaries
+optbench
+task3_sched
