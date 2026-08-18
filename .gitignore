@@ -63,8 +63,6 @@ task3
 
 # Generated output
 primes.txt
-primes_output.txt
+primes_output*.txt
 serial_*.txt
 
-# Benchmark results (remove this line if you want to share raw data)
-results.csv

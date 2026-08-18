@@ -34,21 +34,24 @@ typedef struct {
 } thread_arg_t;
 
 /* ----------------------------------------------------------------------
- * thread_func: each thread scans its own contiguous block of [2, n) and
- * marks results[k] = k for every prime k it finds. chunk = (n - 2) / T;
- * thread t covers [2 + t*chunk, 2 + (t+1)*chunk), except the last thread,
- * which also absorbs any remainder so the full range [2, n) is covered
- * exactly once. Threads never write to the same index, so no locking is
- * required here.
+ * thread_func: cyclic (round-robin) partitioning over the odd numbers.
+ * Thread t starts at k = 3 + 2t and strides by 2 * num_threads.
+ *
+ * Why cyclic and not a contiguous block per thread: the cost of is_prime(k)
+ * grows with sqrt(k), so splitting [2, n) into equal-width blocks would give
+ * the thread owning the highest block about 40% more work than the average,
+ * capping the speed-up well below the thread count. Interleaving the numbers
+ * gives every thread a near-identical mix of cheap and expensive values.
+ *
+ * k = 2 is the only even prime and is handled in main, so even numbers are
+ * skipped entirely here. Threads never write to the same index, so no
+ * locking is required.
  * ---------------------------------------------------------------------- */
 void *thread_func(void *arg) {
     thread_arg_t *targ = (thread_arg_t *) arg;
-    long long total_numbers = targ->n - 2;
-    long long chunk = total_numbers / targ->num_threads;
-    long long start = 2 + targ->thread_id * chunk;
-    long long end = (targ->thread_id == targ->num_threads - 1) ? targ->n : start + chunk;
 
-    for (long long k = start; k < end; k++) {
+    for (long long k = 3 + 2 * targ->thread_id; k < targ->n;
+         k += 2 * targ->num_threads) {
         if (is_prime(k)) {
             targ->results[k] = k;
         }
@@ -132,6 +135,11 @@ int main(int argc, char *argv[]) {
 
     struct timespec start, end;
     clock_gettime(CLOCK_MONOTONIC, &start);
+
+    /* k = 2 is the only even prime; the worker threads scan odd numbers only. */
+    if (n > 2) {
+        results[2] = 2;
+    }
 
     /* Spawn threads: each gets its thread id + shared context. */
     for (int t = 0; t < num_threads; t++) {

@@ -1,0 +1,67 @@
+# ============================================
+# COMPILE
+# ============================================
+gcc -O2 -Wall -o task1 task1.c -lm
+gcc -O2 -Wall -o task2 task2.c -lm -lpthread
+gcc -O2 -Wall -fopenmp -o task3 task3.c -lm
+
+# ============================================
+# BASIC SANITY CHECK (should print 2, 3, 5, 7)
+# ============================================
+./task1 10
+./task2 10 4
+./task3 10 4
+
+# ============================================
+# OUTPUT-THRESHOLD CHECK (n=100 -> writes to a file, not stdout)
+# ============================================
+./task1 100
+cat primes_output.txt
+
+# ============================================
+# CORRECTNESS: task2/task3 output must match task1's, for one n/thread combo
+# ============================================
+N=1000000
+./task1 $N > /dev/null
+./task2 $N 4 > /dev/null
+diff <(tail -n +2 primes_output.txt) <(tail -n +2 primes_output_parallel.txt) && echo "task1 vs task2: MATCH"
+
+./task3 $N 4 > /dev/null
+diff <(tail -n +2 primes_output.txt) <(tail -n +2 primes_output_openmp.txt) && echo "task1 vs task3: MATCH"
+
+# ============================================
+# CORRECTNESS SWEEP: across many thread counts (catches partitioning bugs)
+# ============================================
+N=1000000
+./task1 $N > /dev/null
+for T in 1 2 3 4 5 6 7 8; do
+  ./task2 $N $T > /dev/null
+  diff -q <(tail -n +2 primes_output.txt) <(tail -n +2 primes_output_parallel.txt) > /dev/null \
+    && echo "task2 T=$T MATCH" || echo "task2 T=$T MISMATCH"
+  ./task3 $N $T > /dev/null
+  diff -q <(tail -n +2 primes_output.txt) <(tail -n +2 primes_output_openmp.txt) > /dev/null \
+    && echo "task3 T=$T MATCH" || echo "task3 T=$T MISMATCH"
+done
+
+# ============================================
+# TIMING / SPEEDUP (report data)
+# ============================================
+N=10000000
+echo "--- serial ---"
+./task1 $N | tail -1
+echo "--- pthreads ---"
+for T in 1 2 4 8; do ./task2 $N $T | tail -1; done
+echo "--- OpenMP ---"
+for T in 1 2 4 8; do ./task3 $N $T | tail -1; done
+
+# ============================================
+# EDGE CASES
+# ============================================
+./task1 1          # n < 2, no primes
+./task2 5 100       # more threads than range
+./task3 5 100
+
+# ============================================
+# CHECK YOUR MACHINE'S CORE COUNT (test threads up to this, per spec)
+# ============================================
+nproc

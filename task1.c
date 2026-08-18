@@ -114,7 +114,7 @@ int main(int argc, char *argv[]) {
         return EXIT_SUCCESS;
     }
 
-long long capacity = estimate_capacity(n);
+    long long capacity = estimate_capacity(n);
     long long *primes = malloc(capacity * sizeof(long long));
     if (primes == NULL) {
         fprintf(stderr, "Error: memory allocation failed for n = %lld.\n", n);
