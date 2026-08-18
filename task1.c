@@ -24,16 +24,40 @@ bool is_prime(long long k) {
 }
 
 /* ----------------------------------------------------------------------
- * find_primes: scans [2, n) and stores every prime found into 'primes'.
- * The array is filled in increasing order of k, so the result is already
- * sorted in ascending order - no extra sorting step is required.
- * Returns the number of primes found.
+ * estimate_capacity: initial size for the prime buffer, based on the
+ * prime number theorem (pi(n) ~ n / ln(n)). The 1.2 factor keeps this
+ * above the true count of primes below n across the range this lab
+ * exercises, so the buffer normally never has to grow during the timed
+ * section. Small n falls back to a fixed minimum since the estimate is
+ * unreliable (and irrelevant memory-wise) down there.
  * ---------------------------------------------------------------------- */
-long long find_primes(long long n, long long *primes) {
+long long estimate_capacity(long long n) {
+    if (n < 1000) return 1000;
+    long long capacity = (long long) (1.2 * (double) n / log((double) n));
+    return (capacity > 1000) ? capacity : 1000;
+}
+
+/* ----------------------------------------------------------------------
+ * find_primes: scans [2, n) and stores every prime found into *primes,
+ * growing the buffer with realloc if the estimate undershoots. The array
+ * is filled in increasing order of k, so the result is already sorted in
+ * ascending order - no extra sorting step is required.
+ * Returns the number of primes found, or -1 if a reallocation failed.
+ * ---------------------------------------------------------------------- */
+long long find_primes(long long n, long long **primes, long long capacity) {
     long long count = 0;
     for (long long k = 2; k < n; k++) {
         if (is_prime(k)) {
-            primes[count++] = k;
+            if (count >= capacity) {
+                capacity *= 2;
+                long long *temp = realloc(*primes, capacity * sizeof(long long));
+                if (temp == NULL) {
+                    fprintf(stderr, "Error: memory reallocation failed.\n");
+                    return -1;
+                }
+                *primes = temp;
+            }
+            (*primes)[count++] = k;
         }
     }
     return count;
@@ -90,8 +114,8 @@ int main(int argc, char *argv[]) {
         return EXIT_SUCCESS;
     }
 
-    /* Allocate space for the worst case (every number below n is prime). */
-    long long *primes = malloc(n * sizeof(long long));
+long long capacity = estimate_capacity(n);
+    long long *primes = malloc(capacity * sizeof(long long));
     if (primes == NULL) {
         fprintf(stderr, "Error: memory allocation failed for n = %lld.\n", n);
         return EXIT_FAILURE;
@@ -100,11 +124,16 @@ int main(int argc, char *argv[]) {
     struct timespec start, end;
     clock_gettime(CLOCK_MONOTONIC, &start);
 
-    long long count = find_primes(n, primes);
+    long long count = find_primes(n, &primes, capacity);
 
     clock_gettime(CLOCK_MONOTONIC, &end);
     double elapsed = (end.tv_sec - start.tv_sec) +
                       (end.tv_nsec - start.tv_nsec) / 1e9;
+
+    if (count < 0) {
+        free(primes);
+        return EXIT_FAILURE;
+    }
 
     write_primes(n, primes, count, elapsed);
 
