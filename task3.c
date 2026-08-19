@@ -1,3 +1,15 @@
+/*
+Student 1
+Name: Haruto Iriyama
+Student ID:34307710
+Email:hiri0001@student.monash.edu
+
+Student 2
+Name: Hiew Jia Hao
+Student ID: 34533664
+Email: jhie0006@student.monash.edu
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
