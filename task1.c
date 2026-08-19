@@ -130,6 +130,7 @@ int main(int argc, char *argv[]) {
     double elapsed = (end.tv_sec - start.tv_sec) +
                       (end.tv_nsec - start.tv_nsec) / 1e9;
 
+    /*When reallocating memory is failed in find_primes, count will be -1*/                  
     if (count < 0) {
         free(primes);
         return EXIT_FAILURE;

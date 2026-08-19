@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>AI Use Declaration — FIT3143 Lab 1</title>
+<style>
+  @page { size: A4; margin: 18mm; }
+  :root { --ink:#1a1a1a; --muted:#6b6b6b; --rule:#d8d8d4; --accent:#8a3b1c; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Calibri", "Segoe UI", system-ui, sans-serif;
+    color: var(--ink); font-size: 10.5pt; line-height: 1.45;
+    max-width: 174mm; margin: 0 auto; padding: 8mm 0;
+  }
+  h1 { font-size: 16pt; margin: 0 0 1.5mm; }
+  .sub { color: var(--muted); font-size: 10pt; margin: 0 0 5mm; }
+  h2 {
+    font-size: 12pt; margin: 6mm 0 2.5mm; padding-bottom: 1mm;
+    border-bottom: 1px solid var(--rule); page-break-after: avoid;
+  }
+  p { margin: 0 0 2.5mm; }
+  ul { margin: 0 0 3mm; padding-left: 5mm; }
+  li { margin-bottom: 1.2mm; }
+  table { width: 100%; border-collapse: collapse; margin: 0 0 3mm; font-size: 9.5pt; }
+  th, td { border: 1px solid var(--rule); padding: 1.8mm 2.5mm; text-align: left; vertical-align: top; }
+  th { background: #f4f4f2; font-weight: 600; }
+  .meta td { border: none; padding: 0.8mm 0; font-size: 10pt; }
+  .meta td:first-child { width: 32mm; color: var(--muted); }
+  .fill { color: var(--accent); font-weight: 600; }
+  .statement { background:#f7f6f3; border:1px solid var(--rule); padding:3.5mm 4.5mm; margin:0 0 4mm; }
+  .note { font-size: 9.5pt; color: #444; font-style: italic; }
+  code { font-family: "Consolas", monospace; font-size: 9.5pt; }
+</style>
+</head>
+<body>
+
+<h1>Declaration of Generative AI Use</h1>
+<p class="sub">FIT3143 Parallel Computing &middot; Lab #1 (Threads &amp; OpenMP) &middot; with summarised prompt records</p>
+
+<table class="meta">
+  <tr><td>Student 1</td><td><span class="fill">[Name]</span> &middot; <span class="fill">[ID]</span> &middot; <span class="fill">[name@student.monash.edu]</span></td></tr>
+  <tr><td>Student 2</td><td><span class="fill">[Name]</span> &middot; <span class="fill">[ID]</span> &middot; <span class="fill">[name@student.monash.edu]</span></td></tr>
+  <tr><td>Date</td><td><span class="fill">[submission date]</span></td></tr>
+</table>
+
+<div class="statement">
+  <p><strong>Generative AI was used during the preparation period for this assessment. It was not used at any point during the presentation or the Q&amp;A session.</strong></p>
+  <p style="margin-bottom:0">All measurements in our slides were produced by compiling and running our own code on our own hardware, and are reproducible from the submitted repository. We understand the code we are submitting and can explain any part of it unaided.</p>
+</div>
+
+<p><strong>Tool:</strong> Claude (Anthropic), via the Claude Code CLI, models Claude Sonnet 5 and Claude Opus 5. Used 17&ndash;19 August 2026, in one extended session.</p>
+
+<h2>Division of work</h2>
+<table>
+  <tr><th style="width:42mm">Area</th><th style="width:58mm">AI contribution</th><th>Ours</th></tr>
+  <tr>
+    <td><strong>task1.c, task2.c, task3.c</strong></td>
+    <td>Reviewed our drafts; proposed the <code>estimate_capacity</code> function and the cyclic <code>thread_func</code> loop as code fragments, with reasoning</td>
+    <td>Wrote the programs, typed in every change, compiled and verified them, decided what to accept</td>
+  </tr>
+  <tr>
+    <td><strong>Tooling</strong> <span class="note">(benchmark.sh, summarize.sh, plot.py, optbench.c)</span></td>
+    <td>Wrote these scripts</td>
+    <td>Ran every measurement on our own machine and checked the outputs</td>
+  </tr>
+  <tr>
+    <td><strong>Experimental design &amp; analysis</strong></td>
+    <td>Suggested repetition counts, best-of-N aggregation, the <code>taskset</code> and <code>schedule</code> experiments; helped interpret the numbers</td>
+    <td>Executed the experiments; checked each explanation against our own data before accepting it</td>
+  </tr>
+  <tr>
+    <td><strong>Slides</strong></td>
+    <td>Drafted structure and content from our measurement data</td>
+    <td>Reviewed, corrected and completed the deck; will present it unaided</td>
+  </tr>
+</table>
+
+<p>Done without AI: the Docker environment setup, all compilation and execution, the ~350 timing runs, and correctness verification by <code>diff</code> against the serial output.</p>
+
+<h2>Summarised prompt records</h2>
+<p class="note">Summarised with the unit's permission rather than reproduced verbatim.</p>
+
+<table>
+  <tr><th style="width:44mm">What we asked</th><th>Outcome</th></tr>
+  <tr>
+    <td>Explain the unit's Docker setup and how to use VS Code with the container</td>
+    <td>Explanation of bind mounts and container lifecycle. We set up the environment ourselves.</td>
+  </tr>
+  <tr>
+    <td>Should Task 1 replace worst-case allocation with an estimate?</td>
+    <td>Advised against the common <code>n/(ln n &minus; 1)</code> form (a lower bound, so it guarantees a reallocation) and proposed <code>1.2n/ln n</code>. Confirmed on request that this is a memory optimisation with no effect on run time &mdash; we present it as such.</td>
+  </tr>
+  <tr>
+    <td>Compare our shared-array design against an alternative using per-thread buffers</td>
+    <td>Trade-off analysis. Found a defect in the alternative (count not reset on allocation failure) and noted it used a different <code>is_prime</code>, which would contaminate the comparison. We kept our design.</td>
+  </tr>
+  <tr>
+    <td>Is contiguous block partitioning a good approach for Task 2?</td>
+    <td>No &mdash; <code>is_prime(k)</code> costs ~&radic;k, so the highest block finishes last. Proposed cyclic partitioning; we implemented and measured it: <strong>+18% to +23%</strong> at large n. Our largest optimisation.</td>
+  </tr>
+  <tr>
+    <td>Check our work against the specification and rubric</td>
+    <td>Identified three unmet criteria: near-linear speed-up, "different OpenMP features", and experimental evidence for the Task 1 optimisations. The next three rows are our responses.</td>
+  </tr>
+  <tr>
+    <td>Tooling to collect the required measurements</td>
+    <td><code>benchmark.sh</code> / <code>summarize.sh</code>. We queried the three-repetition, best-of-N choice; the stated reason (parallel runs vary up to 22%, serial 4%) we confirmed in our own data.</td>
+  </tr>
+  <tr>
+    <td>How to evidence the Task 1 optimisations</td>
+    <td><code>optbench.c</code>, running three primality tests behind one identical harness. Measured <strong>1,090&times;</strong> at n = 10<sup>6</sup>; the odd-divisor skip alone gives a consistent 2.0&times;.</td>
+  </tr>
+  <tr>
+    <td>Is hard-coding <code>schedule(static, 1)</code> a problem?</td>
+    <td>The code was fine; what was missing was evidence. Suggested a throwaway copy using <code>schedule(runtime)</code> to compare four schedules, and warned that shipping <code>runtime</code> would silently fall back to the slower default.</td>
+  </tr>
+  <tr>
+    <td>Why is our speed-up curve a staircase?</td>
+    <td>Proposed a <code>taskset</code> pinning test. We measured a <strong>13.3%</strong> difference between two and four physical cores, confirming the explanation.</td>
+  </tr>
+  <tr>
+    <td>Why 4.7&times; and not 8&times;? Is OpenMP really faster?</td>
+    <td>SMT sharing the integer divider, the O(n) sequential compaction, thread-creation cost. The apparent 20% OpenMP advantage proved to be the partitioning difference, not the API &mdash; after fixing Task 2 the two are equal within noise.</td>
+  </tr>
+  <tr>
+    <td>Line-by-line explanation of task1.c and task2.c</td>
+    <td>Pointers, <code>malloc</code>/<code>realloc</code>, <code>sizeof</code>, <code>scanf</code>, <code>struct</code>, the pthread API. We asked precisely because AI is not permitted in the Q&amp;A and we must explain the code unaided.</td>
+  </tr>
+</table>
+
+<p class="note">Two instances where we did not simply accept the output: the AI predicted the contiguous version would cap near 2.8&times; when we measured 4.08&times;, and a single run appeared to show <code>guided</code> was 9.7% faster until five repetitions showed it was noise. Both are reported as measured.</p>
+
+</body>
+</html>
