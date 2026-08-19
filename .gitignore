@@ -70,3 +70,6 @@ serial_*.txt
 # Experiment binaries
 optbench
 task3_sched
+
+# Office lock/temp files
+~$*
