@@ -73,3 +73,8 @@ task3_sched
 
 # Office lock/temp files
 ~$*
+
+# course documents and declarations
+*.pdf
+*.pptx
+*.html

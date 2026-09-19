@@ -2,7 +2,7 @@
 # COMPILE
 # ============================================
 gcc -O2 -Wall -o task1 task1.c -lm
-gcc -O2 -Wall -o task2 task2.c -lm -lpthread
+gcc -O2 -Wall -o task2 task2.c -pthread -lm
 gcc -O2 -Wall -fopenmp -o task3 task3.c -lm
 
 # ============================================
